@@ -1,5 +1,4 @@
 import queue
-from this import d
 
 # 文件基础类 记录一些文件基础信息，如文件名
 class INODE:
