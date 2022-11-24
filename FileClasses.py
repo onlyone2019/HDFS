@@ -1,4 +1,5 @@
 import queue
+from this import d
 
 # 文件基础类 记录一些文件基础信息，如文件名
 class INODE:
@@ -17,7 +18,6 @@ class BLOCKNODE:
 		self.size = 0
 		# 链接下一个块 这里是否需要后面再看
 		self.next = None
-
 
 # 文件节点类
 class FILENODE(INODE):
@@ -83,68 +83,108 @@ class DIRECTORYNODE(INODE):
 		self.fileNum += 1
 		self.childFiles.append(file)
 
-# 找到父目录 将新文件添加进去
-# TODO 查找的逻辑是有问题的 应该根据文件路径去找父目录 暂时只写一个简单的测试
-def addFileToDirectory(root, name , myfile):
-	# BFS 找
-	q = queue.Queue()
-	q.put(root)
-	top = None
-	while (not q.empty()):
-		top = q.get()
-		if (top.name == name):
-			break
-		for x in top.childDirectories:
-			q.put(x)
-	if top.name == name:
-		top.addFile(myfile)
-	else:
-		print("directory is not exist")
-
-# 找到父目录 将新目录添加进去
-# TODO 查找的逻辑是有问题的 应该根据文件路径去找父目录 暂时只写一个简单的测试
-def addDirectoryToDirectory(root, name , myDir):
-	# BFS 找
-	q = queue.Queue()
-	q.put(root)
-	top = None
-	while (not q.empty()):
-		top = q.get()
-		if (top.name == name):
-			break
-		for x in top.childDirectories:
-			q.put(x)
-	if top.name == name:
-		top.addDirectory(myDir)
-	else:
-		print("directory is not exist")
-
 def findFartherFile(root , name):
 	'''
 	@jie
-	查找文件父目录
-	input:
+		查找文件父目录
+		input:
 		name string : 文件路径 "/d1/d2"
-	output:
+		output:
 		None : 文件不存在
 		file *DIRECTORYNODE : 找到的父节点指针
 	'''
-	print(name)
 	if name[0] == '/':
 		name = name[1:]
+	if len(name) == 0: # 根目录
+		return root
 	if name[-1] == '/':
 		name = name[:-1]
 	files = name.split('/')
-	i = 1
-	flag = False
+	i = 0
+	while(i < len(files)):
+		flag = False
+		for x in root.childDirectories:
+			if x.name == files[i]:
+				i = i + 1
+				flag = True
+				root = x
+				break
+		if flag :
+			i += 1
+		else:
+			return None
+	return root
 
-	
+def findFile(root ,name):
+	'''
+	@jie
+		查找文件
+		input
+			root: 跟目录
+			name: 文件路径
+		output
+			FILENODE* 找到对应的文件
+			None  未找到
+	'''
+	if name[0] == '/':
+		name = name[1:]
+	if len(name) == 0 or name[-1] == '/': # 不应该有 "/" "/test/"这样的文件路径
+		return None
+	files = name.split('/')
+	filename = files[-1]
+	name = name[:-len(filename)]
+	fatherDir = findFartherFile(root , name)
+	if fatherDir != None:
+		for x in fatherDir.childFiles:
+			if x.name == filename:
+				return x
+		return None  # 没找到
+	else:
+		return None
 
-	
+def listFiles(root , name):
+	result = []
+	Dir = findFartherFile(root , name)
+	if Dir != None:
+		for x in Dir.childDirectories:
+			result.append(x.name)
+		for x in Dir.childFiles:
+			result.append(x.name)
+	return result
 
+def addFileToDirectory(root, name , myfile):
+	'''
+	@jie
+		找到父目录 将新文件添加进去
+		input:
+			root: 目录树根节点
+			name: 文件路径
+			myfile: 待添加文件指针
+	'''
+	father = findFartherFile(root , name)
+	if father == None:
+		return False
+	else:
+		father.addFile(myfile)
+		return True
+
+def addDirectoryToDirectory(root, name , myDir):
+	'''
+	@jie
+		找到父目录 将新目录添加进去
+		input:
+			root: 目录树根节点
+			name: 文件路径
+			myfile: 待添加目录指针
+	'''
+	father = findFartherFile(root , name)
+	if father == None:
+		return False
+	else:
+		father.addDirectory(myDir)
+		return True
 
 if __name__ == "__main__":
-	'''
 	# 根节点 "/"
 	root = DIRECTORYNODE()
 	root.name = "/"
@@ -152,7 +192,8 @@ if __name__ == "__main__":
 	# 新建一个目录 "/test"
 	test = DIRECTORYNODE()
 	test.name = "test"
-	addDirectoryToDirectory(root , "/" , test)
+	if addDirectoryToDirectory(root , "/" , test) == False:
+		print("add directory error!")
 
 	# 新建1个文件 "/test/file.txt" 假设需要两个block
 	file1 = FILENODE()
@@ -160,7 +201,8 @@ if __name__ == "__main__":
 	file1.blocks = 2
 	file1.buildBlockList()
 	file1.buildCopyList()
-	addFileToDirectory(root, "test", file1)
+	if addFileToDirectory(root, "/test/", file1) == False:
+		print("add file error!")
 
 	#打印结果
 	q = queue.Queue()
@@ -176,7 +218,7 @@ if __name__ == "__main__":
 				cnt += 1
 				p = p.next
 			print("块数量" , cnt)
-			print(top.copies[0])
+			# print(top.copies[0])
 		else:
 			print("子目录有", top.directoryNum)
 			print("子文件有", top.fileNum)
@@ -184,5 +226,12 @@ if __name__ == "__main__":
 				q.put(x)
 			for x in top.childFiles:
 				q.put(x)
-	'''
-	findFartherFile("/test/he/")
+
+
+
+'''
+需要进一步讨论的点：
+	每个块具体存储位置怎么处理？
+	如果文件没有处理 释放空间这部分代码写不写？
+	是否设计 ls 功能 (先加上好了)
+'''
