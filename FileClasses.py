@@ -1,4 +1,9 @@
 import queue
+import random
+
+
+ips = ["192.168.0.168"]
+index = [1]
 
 # 文件基础类 记录一些文件基础信息，如文件名
 class INODE:
@@ -12,7 +17,7 @@ class INODE:
 class BLOCKNODE:
 	def __init__(self):
 		# 块存储位置
-		self.location = ""
+		self.location = []
 		# 块的大小
 		self.size = 0
 		# 链接下一个块 这里是否需要后面再看
@@ -26,12 +31,14 @@ class FILENODE(INODE):
 		self.blocks = 0
 		# 块链表头
 		self.head = None
+		# 文件各个块的位置
+		self.locations = []
 
 		# TODO: 备份怎么处理呢？
 		# 先默认一个备份
 		self.copyNum = 1
 		# 备份块链表头，只设置一个备份则数组里就一个元素
-		self.copies = []
+		# self.copies = []
 
 	# 构造块链 带头结点的链表
 	def buildBlockList(self):
@@ -39,27 +46,45 @@ class FILENODE(INODE):
 		p = blockhead
 		for i in range(self.blocks):
 			block = BLOCKNODE()
-			# TODO: 块大小要不要作为参数传进来
-			block.size = 100
+			# 块大小固定为 1024
+			block.size = 1024
 			# TODO: 存储位置如何获取？
-			block.location = "location"
+			# 随机挑选datanode的ip
+			'''
+			id = random.sample(range(-1 , len(ips) +1) , self.copyNum + 1)
+			for i in id:
+				loc = [ips[i] , index[i]]
+				index[i] += 1
+				block.location.append(loc)
+			p.next = block
+			p = block
+			'''
+			id = 0
+			print("存 " + str(self.copyNum + 1) + " 份 \n")
+			for i in range(self.copyNum + 1):
+				loc = [ips[id], index[id]]
+				print(loc)
+				index[id] += 1
+				block.location.append(loc)
+			self.locations.append(block.location)
 			p.next = block
 			p = block
 		self.head = blockhead
 
+	#备份逻辑精细化到具体的block 不再采用这个逻辑
 	# 构造备份块链 带头结点的链表
-	def buildCopyList(self):
-		for i in range(self.copyNum):
-			p = blockhead = BLOCKNODE()
-			for i in range(self.blocks):
-				block = BLOCKNODE()
-				# TODO: 块大小要不要作为参数传进来
-				block.size = 100
-				# TODO: 存储位置如何获取？
-				block.location = "copy_location"
-				p.next = block
-				p = block
-			self.copies.append(blockhead)
+	# def buildCopyList(self):
+	# 	for i in range(self.copyNum):
+	# 		p = blockhead = BLOCKNODE()
+	# 		for i in range(self.blocks):
+	# 			block = BLOCKNODE()
+	# 			# TODO: 块大小要不要作为参数传进来
+	# 			block.size = 100
+	# 			# TODO: 存储位置如何获取？
+	# 			block.location = "copy_location"
+	# 			p.next = block
+	# 			p = block
+	# 		self.copies.append(blockhead)
 
 # 目录节点类
 class DIRECTORYNODE(INODE):
@@ -82,16 +107,15 @@ class DIRECTORYNODE(INODE):
 		self.fileNum += 1
 		self.childFiles.append(file)
 
+'''
 def findFartherFile(root , name):
-	'''
-	@jie
-		查找文件父目录
-		input:
-		name string : 文件路径 "/d1/d2"
-		output:
-		None : 文件不存在
-		file *DIRECTORYNODE : 找到的父节点指针
-	'''
+	# @jie
+	# 	查找文件父目录
+	# 	input:
+	# 	name string : 文件路径 "/d1/d2"
+	# 	output:
+	# 	None : 文件不存在
+	# 	file *DIRECTORYNODE : 找到的父节点指针
 	if name[0] == '/':
 		name = name[1:]
 	if len(name) == 0: # 根目录
@@ -115,16 +139,15 @@ def findFartherFile(root , name):
 	return root
 
 def findFile(root ,name):
-	'''
-	@jie
-		查找文件
-		input
-			root: 跟目录
-			name: 文件路径
-		output
-			FILENODE* 找到对应的文件
-			None  未找到
-	'''
+	# @jie
+	# 	查找文件
+	# 	input
+	# 		root: 跟目录
+	# 		name: 文件路径
+	# 	output
+	# 		FILENODE* 找到对应的文件
+	# 		None  未找到
+	
 	if name[0] == '/':
 		name = name[1:]
 	if len(name) == 0 or name[-1] == '/': # 不应该有 "/" "/test/"这样的文件路径
@@ -152,37 +175,21 @@ def listFiles(root , name):
 	return result
 
 def addFileToDirectory(root, name , myfile):
-	'''
-	@jie
-		找到父目录 将新文件添加进去
-		input:
-			root: 目录树根节点
-			name: 文件路径
-			myfile: 待添加文件指针
-	'''
+	# @jie
+	# 	找到父目录 将新文件添加进去
+	# 	input:
+	# 		root: 目录树根节点
+	# 		name: 文件路径
+	# 		myfile: 待添加文件指针
 	father = findFartherFile(root , name)
 	if father == None:
 		return False
 	else:
 		father.addFile(myfile)
 		return True
+'''
 
-def addDirectoryToDirectory(root, name , myDir):
-	'''
-	@jie
-		找到父目录 将新目录添加进去
-		input:
-			root: 目录树根节点
-			name: 文件路径
-			myfile: 待添加目录指针
-	'''
-	father = findFartherFile(root , name)
-	if father == None:
-		return False
-	else:
-		father.addDirectory(myDir)
-		return True
-
+'''
 if __name__ == "__main__":
 	# 根节点 "/"
 	root = DIRECTORYNODE()
@@ -199,7 +206,7 @@ if __name__ == "__main__":
 	file1.name = "file"
 	file1.blocks = 2
 	file1.buildBlockList()
-	file1.buildCopyList()
+	# file1.buildCopyList()
 	if addFileToDirectory(root, "/test/", file1) == False:
 		print("add file error!")
 
@@ -225,9 +232,7 @@ if __name__ == "__main__":
 				q.put(x)
 			for x in top.childFiles:
 				q.put(x)
-
-
-
+'''
 '''
 需要进一步讨论的点：
 	每个块具体存储位置怎么处理？
