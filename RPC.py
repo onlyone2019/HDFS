@@ -39,7 +39,8 @@ class caculate(object):
 root = FC.DIRECTORYNODE()
 root.name = "/"
 
-def addDirectoryToDirectory(father, myDir):
+
+def addDirectoryToDirectory(father, mydir):
     '''
     @jie
         找到父目录 将新目录添加进去
@@ -48,7 +49,8 @@ def addDirectoryToDirectory(father, myDir):
             name: 文件路径
             myfile: 待添加目录指针
     '''
-    father.addDirectory(myDir)
+    father.addDirectory(mydir)
+
 
 def findFartherFile(path):
     '''
@@ -64,7 +66,7 @@ def findFartherFile(path):
         return root
     i = 0
     p = root
-    while (i < len(path)):
+    while i < len(path):
         flag = False
         for x in p.childDirectories:
             if x.name == path[i]:
@@ -77,7 +79,8 @@ def findFartherFile(path):
             return None
     return p
 
-def findFile(name):
+
+def findFile(path):
     '''
     @jie
         查找文件
@@ -88,31 +91,27 @@ def findFile(name):
             FILENODE* 找到对应的文件
             None  未找到
     '''
-    if name[0] == '/':
-        name = name[1:]
-    if len(name) == 0 or name[-1] == '/':  # 不应该有 "/" "/test/"这样的文件路径
-        return None
-    files = name.split('/')
-    filename = files[-1]
-    name = name[:-len(filename)]
-    fatherDir = findFartherFile(name)
-    if fatherDir != None:
+    filename = path[-1]
+    fatherDir = findFartherFile(path[:-1])
+    if fatherDir is not None:
         for x in fatherDir.childFiles:
-            if x.name == filename:
+            if x.filename == filename:
                 return x
         return None  # 没找到
     else:
         return None
 
+
 def listFiles(name):
     result = []
     Dir = findFartherFile(root, name)
-    if Dir != None:
+    if Dir is not None:
         for x in Dir.childDirectories:
             result.append(x.name)
         for x in Dir.childFiles:
             result.append(x.name)
     return result
+
 
 def addFileToDirectory(name, myfile):
     '''
@@ -124,25 +123,29 @@ def addFileToDirectory(name, myfile):
             myfile: 待添加文件指针
     '''
     father = findFartherFile(root, name)
-    if father == None:
+    if father is None:
         return False
     else:
         father.addFile(myfile)
         return True
 
+
 def pathParse(path):
-    # @jie
-    # 文件路径解析
-    # input
-    #   path string "/test/test"
-    # output
-    #   ["test","test"]
+    '''
+    @jie
+    文件路径解析
+    input
+      path string "/test/test"
+    output
+      ["test","test"]
+    '''
     path = path.split('/')
     res = []
     for x in path:
         if x != '':
             res.append(x)
     return res
+
 
 def isDirExit(path):
     '''
@@ -155,7 +158,7 @@ def isDirExit(path):
     '''
     i = 0
     point = root
-    while (i < len(path)):
+    while i < len(path):
         flag = False
         for x in point.childDirectories:
             if x.name == path[i]:
@@ -167,6 +170,7 @@ def isDirExit(path):
         else:
             return False
     return True
+
 
 class main(object):
     '''
@@ -180,7 +184,8 @@ class main(object):
             file xxx not exist ==> 路径中有文件不存在
             ok!                ==> 创建成功
     '''
-    def mkDir(self , path):
+
+    def mkDir(self, path):
         parsedPath = pathParse(path)
         if len(parsedPath) == 0:
             return "the file " + path + " is exist!"
@@ -207,6 +212,7 @@ class main(object):
     output:
         服务器端设定的文件块大小
     '''
+
     def getBlockSize(self):
         return 1024
 
@@ -225,7 +231,8 @@ class main(object):
                 [[ip , idx],[ip , idx]], 第num - 1个block的位置
             ]
         '''
-    def getLocation(self , path , num):
+
+    def getLocation(self, path, num):
         # TODO 如果用户输入的path没有到具体文件而是一个文件夹要不要做异常处理？
         parsedPath = pathParse(path)
         filename = parsedPath[-1]
@@ -243,13 +250,17 @@ class main(object):
         else:
             return []
 
+    def get(self, file):
+        parsedfile = pathParse(file)
+        filenode = findFile(parsedfile)
+        if filenode is not None:
+            return filenode.blockLocations()
+        else:
+            return []
 
 
 
-
-
-
-
-s = zerorpc.Server(main())
-s.bind("tcp://0.0.0.0:4242")
-s.run()
+if __name__ == '__main__':
+    s = zerorpc.Server(main())
+    s.bind("tcp://0.0.0.0:4242")
+    s.run()

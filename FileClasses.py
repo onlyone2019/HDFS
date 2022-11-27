@@ -46,6 +46,7 @@ class FILENODE(INODE):
 		p = blockhead
 		for i in range(self.blocks):
 			block = BLOCKNODE()
+			block.next = None
 			# 块大小固定为 1024
 			block.size = 1024
 			# TODO: 存储位置如何获取？
@@ -70,6 +71,23 @@ class FILENODE(INODE):
 			p.next = block
 			p = block
 		self.head = blockhead
+
+	def blockLocations(self):
+		'''
+		@jie
+		用于获取文件 得到文件各块存储位置 随机选择一个副本
+		:return:
+			location []  每一个块的位置
+		'''
+		x = self.head.next
+		location = []
+		while x is not None:
+			t = random.randint(0, self.copyNum)  # 产生随机数 0 或者 1
+			print(t)
+			location.append(x.location[t])
+			x = x.next
+		return location
+
 
 	#备份逻辑精细化到具体的block 不再采用这个逻辑
 	# 构造备份块链 带头结点的链表
