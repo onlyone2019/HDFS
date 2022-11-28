@@ -2,6 +2,10 @@ import zerorpc
 import queue
 import random
 import FileClasses as FC
+import os
+import _pickle as pk
+import atexit
+
 
 '''
 class caculate(object):
@@ -36,8 +40,7 @@ class caculate(object):
         return "jie"
 '''
 
-root = FC.DIRECTORYNODE()
-root.name = "/"
+root = None
 
 
 def addDirectoryToDirectory(father, mydir):
@@ -57,7 +60,7 @@ def findFartherFile(path):
     @jie
         查找文件父目录
         input:
-        name string : 文件路径 "/d1/d2"
+        name [] : 文件路径 ["d1" , "d2"] 表示 "/d1/d2" 这个路径
         output:
         None : 文件不存在
         file *DIRECTORYNODE : 找到的父节点指针
@@ -69,7 +72,7 @@ def findFartherFile(path):
     while i < len(path):
         flag = False
         for x in p.childDirectories:
-            if x.name == path[i]:
+            if x.filename == path[i]:
                 flag = True
                 p = x
                 break
@@ -102,14 +105,14 @@ def findFile(path):
         return None
 
 
-def listFiles(name):
+def listFiles(path):
     result = []
-    Dir = findFartherFile(root, name)
+    Dir = findFartherFile(path)
     if Dir is not None:
         for x in Dir.childDirectories:
-            result.append(x.name)
+            result.append(x.filename)
         for x in Dir.childFiles:
-            result.append(x.name)
+            result.append(x.filename)
     return result
 
 
@@ -161,7 +164,7 @@ def isDirExit(path):
     while i < len(path):
         flag = False
         for x in point.childDirectories:
-            if x.name == path[i]:
+            if x.filename == path[i]:
                 flag = True
                 point = x
                 break
@@ -184,7 +187,6 @@ class main(object):
             file xxx not exist ==> 路径中有文件不存在
             ok!                ==> 创建成功
     '''
-
     def mkDir(self, path):
         parsedPath = pathParse(path)
         if len(parsedPath) == 0:
@@ -194,7 +196,7 @@ class main(object):
         if isDirExit(parsedPath):
             father = findFartherFile(parsedPath)
             for x in father.childDirectories:
-                if x.name == filename:
+                if x.filename == filename:
                     return filename + " exist!"
             myDir = FC.DIRECTORYNODE()
             myDir.filename = filename
@@ -212,7 +214,6 @@ class main(object):
     output:
         服务器端设定的文件块大小
     '''
-
     def getBlockSize(self):
         return 1024
 
@@ -231,7 +232,6 @@ class main(object):
                 [[ip , idx],[ip , idx]], 第num - 1个block的位置
             ]
         '''
-
     def getLocation(self, path, num):
         # TODO 如果用户输入的path没有到具体文件而是一个文件夹要不要做异常处理？
         parsedPath = pathParse(path)
@@ -250,6 +250,14 @@ class main(object):
         else:
             return []
 
+    '''
+    @jie
+    获取一个文件各块地址
+    input:
+        file string: 文件路径 "/x.txt"
+    output:
+        [] : 各块地址，每个块从原本+副本中随机挑选一个
+    '''
     def get(self, file):
         parsedfile = pathParse(file)
         filenode = findFile(parsedfile)
@@ -259,8 +267,34 @@ class main(object):
             return []
 
 
+    '''
+    @jie
+    list dir
+    input: 
+        dir string : 目录路径
+    output:
+        [] : 目录下所有文件名称
+    '''
+    def ls(self , dir):
+        path = pathParse(dir)
+        return listFiles(path)
+
+
+@atexit.register
+def dump():
+    # 固化文件目录树
+    pk.dump(root, open("./dirTree.pkl", "wb"))
+
 
 if __name__ == '__main__':
+    if os.path.exists("./dirTree.pkl"):
+        # 文件目录树已存在 直接加载
+        print("load dir tree......")
+        root = pk.load(open("./dirTree.pkl", 'rb'))
+    else:
+        # 文件目录树不存在 新建
+        root = FC.DIRECTORYNODE()
+        root.filename = "/"
     s = zerorpc.Server(main())
     s.bind("tcp://0.0.0.0:4242")
     s.run()
