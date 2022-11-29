@@ -42,7 +42,6 @@ class caculate(object):
 
 root = None
 
-
 def addDirectoryToDirectory(father, mydir):
     '''
     @jie
@@ -174,6 +173,23 @@ def isDirExit(path):
             return False
     return True
 
+def isFileExit(path):
+    '''
+    @jie
+    :param path: 文件路径数组 ["test" , "x.txt"] 表示/test/x.txt
+    :return:
+        文件是否存在
+    '''
+    filename = path[-1]
+    path = path[:-1]
+    father = findFartherFile(path)
+    if father is None:
+        return False
+    for x in father.childFiles:
+        if x.filename == filename:
+            return True
+    return False
+
 
 class main(object):
     '''
@@ -278,6 +294,59 @@ class main(object):
     def ls(self , dir):
         path = pathParse(dir)
         return listFiles(path)
+
+    '''
+    @jie
+    文件位置移动
+    逻辑：
+        只要更改文件目录树就行了，将本节点记录加入到目的位置节点，然后从父节点删除本节点记录
+    input:
+        src: 源文件/目录
+        des: 目的位置
+    output:
+        成功则 ok
+        否则 错误提示
+    '''
+    def mv(self , src , des):
+        parsed_des = pathParse(des)
+        parsed_src = pathParse(src)
+        if not isDirExit(parsed_des):
+            return "file " + des + " not exist!"
+        if src == "/":
+            return "mv / is not allowed!"
+        desfile = findFartherFile(parsed_des)
+        if isDirExit(parsed_src):
+            for x in desfile.childDirectories:
+                if x.filename == parsed_src[-1]:
+                    return "file name conflict!"
+            # 将原目录从父目录删除 重新添加到目的目录
+            srcfile = findFartherFile(parsed_src)
+            srcfather = findFartherFile(parsed_src[:-1])
+            # 添加
+            desfile.addDirectory(srcfile)
+            # 删除
+            for x in srcfather.childDirectories:
+                if x.filename == srcfile.filename:
+                    srcfather.childDirectories.remove(x)
+                    break
+            srcfather.directoryNum -= 1
+            return "ok!"
+        elif isFileExit(parsed_src):
+            for x in desfile.childFiles:
+                if x.filename == parsed_src[-1]:
+                    return "file name conflict!"
+            # 将文件添加到目的目录下，删除原父目录中的记录
+            file = findFile(parsed_src)
+            father = findFartherFile(parsed_src[:-1])
+            desfile.addFile(file)
+            for x in father.childFiles:
+                if x.filename == file.filename:
+                    father.childFiles.remove(x)
+                    father.fileNum -= 1
+                    break
+            return "ok!"
+        else:
+            return "file " + src + " not exist!"
 
 
 @atexit.register

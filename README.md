@@ -50,13 +50,22 @@
 
 - **实现：** 文件目录树存储借助python `pickle` 模块将对象序列化。对象加载和保存分别为`load` 和 `dump`。
 
-当前目录下的`dirTree.pkl`文件存储的目录树形式如下：`/test/xxxx` 即根目录下有`test`文件夹，其下又有`xxxx`文件夹
+当前目录下的`dirTree.pkl`文件存储的目录树形式如下：`/test` 和 `/xxxx` 即根目录下有`test`文件夹 和 `xxxx`文件夹
 
 客户端测试代码：
 ```python
 import zerorpc
 c = zerorpc.Client()
 c.connect("tcp://ip:4242")
-print(c.ls("/"))  # ["test"]
-print(c.ls("/test")) #["xxxx"]
+print(c.ls("/"))  # ["test","xxxx"]
 ```
+
+----------------------------------- 2022/11/28 -------------------------------------
+
+新增功能：**文件移动(mv)**
+
+**mv逻辑：**
+- 只要更改文件目录树就行了，将本节点记录加入到目的位置节点，然后从父节点删除本节点记录
+
+对应namenode接口：
+- `mv` 使用方法：`c.mv(src,des)`
