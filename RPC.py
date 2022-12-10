@@ -6,7 +6,6 @@ import os
 import _pickle as pk
 import atexit
 
-
 '''
 class caculate(object):
     # 查看hdfs中的目录信息
@@ -281,6 +280,11 @@ class main(object):
             return filenode.blockLocations()
         else:
             return []
+
+    def changeIP(self, file, blocknum, i):
+        file = pathParse(file)
+        filenode = findFile(file)
+        return filenode.changeBlockLocation(blocknum, i)
 
 
     '''
