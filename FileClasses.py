@@ -5,9 +5,8 @@ from ftplib import FTP
 
 ips = ["192.168.0.168"]
 index = [1]
+flag = [True]
 
-dead_ips = []
-dead_ips_index = []
 
 # 文件基础类 记录一些文件基础信息，如文件名
 class INODE:
@@ -46,19 +45,19 @@ class FILENODE(INODE):
 
 	# 构造块链 带头结点的链表
 	def buildBlockList(self):
-
-		for i in range(len(dead_ips)):
-			try:
-				ftp = FTP()
-				ftp.connect(dead_ips[i], 21)
-				ftp.login("ftpuser", "ftppass")
-				ftp.close()
-				ips.append(dead_ips[i])
-				index.append(dead_ips_index[i])
-				del dead_ips[i]
-				del dead_ips_index[i]
-			except:
-				print(dead_ips[i] + " still can not connect now. \n")
+		# TODO 这个逻辑得改
+		# for i in range(len(dead_ips)):
+		# 	try:
+		# 		ftp = FTP()
+		# 		ftp.connect(dead_ips[i], 21)
+		# 		ftp.login("ftpuser", "ftppass")
+		# 		ftp.close()
+		# 		ips.append(dead_ips[i])
+		# 		index.append(dead_ips_index[i])
+		# 		del dead_ips[i]
+		# 		del dead_ips_index[i]
+		# 	except:
+		# 		print(dead_ips[i] + " still can not connect now. \n")
 
 
 		blockhead = BLOCKNODE()
@@ -106,15 +105,18 @@ class FILENODE(INODE):
 			cnt += 1
 
 		id = ips.index(p.location[i][0])
-		dead_ips.append(ips[id])
-		dead_ips_index.append(index[id])
-		del ips[id]
-		del index[id]
+		flag[id] = False
 
-		id = random.randint(0, len(ips))
-		index[id] += 1
-		p.location[i] = [ips[id] , index[id]]
-		self.locations[blocknum - 1][i] = [ips[id] , index[i]]
+		ok = False
+		while ok is False:
+			id = random.randint(0, len(ips))
+			if flag[id] is True:
+				index[id] += 1
+				p.location[i] = [ips[id] , index[id]]
+				self.locations[blocknum - 1][i] = [ips[id] , index[i]]
+				break
+			else:
+				continue
 		return [ips[id] , index[id]]
 
 	def blockLocations(self):

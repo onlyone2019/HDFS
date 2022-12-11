@@ -2,6 +2,7 @@ from ftplib import FTP
 import zerorpc
 import os
 
+
 def mkSubFile(srcName, cnt, buf):
     [des_filename, extname] = os.path.splitext(srcName)
     filename = "./output/" + str(cnt) + extname

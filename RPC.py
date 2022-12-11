@@ -5,6 +5,9 @@ import FileClasses as FC
 import os
 import _pickle as pk
 import atexit
+import time, threading
+from ftplib import FTP
+import FileClasses as FC
 
 '''
 class caculate(object):
@@ -190,6 +193,25 @@ def isFileExit(path):
     return False
 
 
+def action():
+    cnt = 0
+    while cnt < 5:
+        ftp = FTP()
+        cnt += 1
+        for x in range(len(FC.ips)):
+            try:
+                ftp.connect(FC.ips[x], 21)
+                ftp.login("ftpuser", "ftppass")
+                print(ftp.pwd())
+                ftp.close()
+                FC.flag[x] = True
+                print(FC.ips[x] + " OK!\n")
+            except:
+                FC.flag[x] = False
+                print(FC.ips[x] + " can not connect!\n")
+        time.sleep(60)
+
+
 class main(object):
     '''
         @jie
@@ -282,6 +304,14 @@ class main(object):
             return []
 
     def changeIP(self, file, blocknum, i):
+        '''
+        @jie 旧的IP地址对应的datanode失效 重新分配
+        :param file:  文件路径
+        :param blocknum: 第几块
+        :param i:  哪个副本
+        :return:
+            更新的ip
+        '''
         file = pathParse(file)
         filenode = findFile(file)
         return filenode.changeBlockLocation(blocknum, i)
@@ -360,6 +390,9 @@ def dump():
 
 
 if __name__ == '__main__':
+    # 启动节点活跃性检测进程
+    # thread = threading.Thread(target=action, args=())
+    # thread.start()
     if os.path.exists("./dirTree.pkl"):
         # 文件目录树已存在 直接加载
         print("load dir tree......")
