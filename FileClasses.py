@@ -69,7 +69,7 @@ class FILENODE(INODE):
 			block.size = 1024
 			# TODO: 存储位置如何获取？
 			# 随机挑选datanode的ip
-			'''
+
 			id = random.sample(range(-1 , len(ips) +1) , self.copyNum + 1)
 			for i in id:
 				loc = [ips[i] , index[i]]
@@ -88,6 +88,7 @@ class FILENODE(INODE):
 			self.locations.append(block.location)
 			p.next = block
 			p = block
+			'''
 		self.head = blockhead
 
 	def changeBlockLocation(self , blocknum , i):
