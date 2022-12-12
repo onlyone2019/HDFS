@@ -382,6 +382,13 @@ class main(object):
         else:
             return "file " + src + " not exist!"
 
+    # def rm(self , path):
+    #     parsedPath = pathParse(path)
+    #     # 如果是一个文件
+    #     if isFileExit(parsedPath):
+    #         filename = parsedPath[-1]
+    #         faPath = parsedPath[:-1]
+
 
 @atexit.register
 def dump():

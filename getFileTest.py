@@ -25,9 +25,6 @@ if __name__ == '__main__':
     # 拿到文件存储位置信息
     path = "/x.txt"
     location = c.get(path)
-    # location = [['192.168.0.168', 2], ['192.168.0.168', 4], ['192.168.0.168', 6]]
-    print("location ")
-    print(location)
 
     [_, extname] = os.path.splitext(path) #获取后缀名
     print("extname " + extname)

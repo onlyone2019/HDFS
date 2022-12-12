@@ -5,7 +5,7 @@ import os
 
 def mkSubFile(srcName, cnt, buf):
     [des_filename, extname] = os.path.splitext(srcName)
-    filename = "./output/" + str(cnt) + extname
+    filename = "./output/" + des_filename + str(cnt) + extname
     print('正在生成子文件: %s' % filename)
     with open(filename, 'wb') as fout:
         fout.write(buf)
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     filename = 'x.txt'
     # 获取允许的分块大小
     blocksize = c.getBlockSize()
-
+    # blocksize = 1024
     # 将文件分块 得到块数
     blocknum = splitBySize(filename , blocksize)
 
@@ -40,15 +40,15 @@ if __name__ == '__main__':
     files = os.listdir(path)
     for i in range(blocknum):
         fp = open(os.path.join(path, files[i]), 'rb')
-        [_, extname] = os.path.splitext(files[i])
+        [filename, extname] = os.path.splitext(files[i])
         ftp = FTP()
         for j in location[i]:
             try:
                 # ftp.set_debuglevel(2)
                 ftp.connect(j[0], 21)
                 ftp.login("ftpuser", "ftppass")
-                filename = str(j[1]) + extname
-                ftp.storbinary('STOR /' + filename, fp, 1024)
+                storefilename = filename + j[1] + extname
+                ftp.storbinary('STOR /' + storefilename, fp, 1024)
                 ftp.close()
             except:
                 newloc = c.changeIP(filename, i + 1, j)
