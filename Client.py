@@ -33,9 +33,11 @@ def merge(dir , name , size):
                     buf = fin.read(size)
 
 class Client:
-    def __int__(self , host):
-        c = zerorpc.Client()
-        c.connect("tcp://127.0.0.1:4242")
+    def __init__(self, host):
+        self.c = zerorpc.Client()
+        self.c.connect(host)
+        print("host  ---------")
+
 
     def mkdir(self, path):
         return self.c.mkdir(path)
@@ -115,3 +117,15 @@ class Client:
     def cp(self, src, des):
         pass
 
+    def rm(self, path):
+        return self.c.rm(path)
+
+if __name__ == '__main__':
+    client = Client("tcp://127.0.0.1:4242")
+    client.mkdir("/dir1")
+    client.mkdir("/dir1/dir2")
+    client.mkdir("/dir1/dir3")
+    print(client.ls("/"))
+    print(client.ls("/dir1"))
+    print(client.rm("/dir1"))
+    print(client.ls("/"))

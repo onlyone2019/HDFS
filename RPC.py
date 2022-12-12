@@ -210,6 +210,51 @@ def action():
         time.sleep(60)
 
 
+def deletefile(dir , filename):
+    for x in dir.childFiles:
+        if x.filename == filename:
+            break
+    if (x is not None) and (x.filename == filename):
+        # 父目录里清除这条记录
+        dir.childFiles.remove(x)
+        dir.fileNum -= 1
+
+        # 先删除datanode存的所有的文件块
+        locations = x.locations
+        [name, extname] = os.path.splitext(filename)
+        ftp = FTP()
+        for loc in locations:
+            ftp.connect(loc[0], 21)
+            ftp.login("ftpuser", "ftppass")
+            remotefilename = filename + loc[1] + extname
+            ftp.delete(remotefilename)
+            ftp.close()
+
+        #删除块链
+        head = x.head
+        while head is not None:
+            p = head.next
+            del head
+            head = p
+
+        # 删除目录树上这个文件节点
+        del x
+
+def deleteDir(dir):
+    if dir.fileNum > 0:
+        for x in dir.childFiles:
+            deletefile(dir, x.filename)
+
+    if dir.directoryNum > 0:
+        for x in dir.childDirectories:
+            deleteDir(x)
+            dir.directoryNum -= 1
+
+    if dir.directoryNum == 0:
+        del dir
+
+
+
 class main(object):
     '''
         @jie
@@ -222,7 +267,7 @@ class main(object):
             file xxx not exist ==> 路径中有文件不存在
             ok!                ==> 创建成功
     '''
-    def mkDir(self, path):
+    def mkdir(self, path):
         parsedPath = pathParse(path)
         if len(parsedPath) == 0:
             return "the file " + path + " is exist!"
@@ -382,13 +427,26 @@ class main(object):
         else:
             return "file " + src + " not exist!"
 
-    # def rm(self , path):
-    #     parsedPath = pathParse(path)
-    #     # 如果是一个文件
-    #     if isFileExit(parsedPath):
-    #         filename = parsedPath[-1]
-    #         faPath = parsedPath[:-1]
-
+    def rm(self , path):
+        parsedPath = pathParse(path)
+        # 如果是一个文件
+        if isFileExit(parsedPath):
+            filename = parsedPath[-1]
+            faPath = parsedPath[:-1]
+            faDir = findFartherFile(faPath)
+            deletefile(faDir, filename)
+            return "ok!"
+        elif isDirExit(parsedPath):
+            if len(parsedPath) == 0:
+                return "delete / is not allowed!"
+            faDir = findFartherFile(parsedPath[:-1])
+            thisdir = findFartherFile(parsedPath)
+            faDir.childDirectories.remove(thisdir)
+            faDir.directoryNum -= 1
+            deleteDir(thisdir)
+            return "ok!"
+        else:
+            return "file or directory not exist!"
 
 @atexit.register
 def dump():
