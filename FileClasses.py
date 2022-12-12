@@ -69,7 +69,7 @@ class FILENODE(INODE):
 			# TODO: 存储位置如何获取？
 			# 随机挑选datanode的ip
 
-			id = random.sample(range(-1, len(ips) + 1), self.copyNum + 1)
+			id = random.sample(range(0, len(ips)), self.copyNum + 1)
 			for j in range(len(id)):
 				time_str = str(time.time())
 				time_str.replace('.', '')
