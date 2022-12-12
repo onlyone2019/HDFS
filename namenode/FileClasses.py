@@ -76,6 +76,7 @@ class FILENODE(INODE):
 				time_str += str(i) + str(j)
 				loc = [ips[id[j]], time_str]
 				block.location.append(loc)
+			self.locations.append(block.location)
 			p.next = block
 			p = block
 			'''
