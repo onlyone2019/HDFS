@@ -427,7 +427,7 @@ class main(object):
         else:
             return "file " + src + " not exist!"
 
-    def rm(self , path):
+    def rmr(self , path):
         parsedPath = pathParse(path)
         # 如果是一个文件
         if isFileExit(parsedPath):
@@ -448,6 +448,27 @@ class main(object):
         else:
             return "file or directory not exist!"
 
+    def rm(self , path):
+        parsedPath = pathParse(path)
+        # 如果是一个文件
+        if isFileExit(parsedPath):
+            filename = parsedPath[-1]
+            faPath = parsedPath[:-1]
+            faDir = findFartherFile(faPath)
+            deletefile(faDir, filename)
+            return "ok!"
+        elif isDirExit(parsedPath):
+            if len(parsedPath) == 0:
+                return "delete / is not allowed!"
+            faDir = findFartherFile(parsedPath[:-1])
+            thisdir = findFartherFile(parsedPath)
+            if thisdir.fileNum == 0 and thisdir.directoryNum == 0:
+                faDir.childDirectories.remove(thisdir)
+                faDir.directoryNum -= 1
+                del thisdir
+                return "ok!"
+            else:
+                return path + "is not an empty directory! use '-r' force to remove."
 @atexit.register
 def dump():
     # 固化文件目录树

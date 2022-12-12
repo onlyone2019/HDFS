@@ -117,15 +117,19 @@ class Client:
     def cp(self, src, des):
         pass
 
-    def rm(self, path):
-        return self.c.rm(path)
+    def rm(self, path , *p):
+        if len(p) > 0 and p[0] == '-r':
+            return self.c.rmr(path)
+        else:
+            return self.c.rm(path)
+
 
 if __name__ == '__main__':
     client = Client("tcp://127.0.0.1:4242")
-    client.mkdir("/dir1")
-    client.mkdir("/dir1/dir2")
-    client.mkdir("/dir1/dir3")
-    print(client.ls("/"))
-    print(client.ls("/dir1"))
-    print(client.rm("/dir1"))
-    print(client.ls("/"))
+    # client.mkdir("/dir1")
+    # client.mkdir("/dir1/dir2")
+    # client.mkdir("/dir1/dir3")
+    # print(client.ls("/"))
+    # print(client.ls("/dir1"))
+    # print(client.rm("/dir1"))
+    # print(client.ls("/"))
