@@ -194,10 +194,8 @@ def isFileExit(path):
 
 
 def action():
-    cnt = 0
-    while cnt < 5:
+    while True:
         ftp = FTP()
-        cnt += 1
         for x in range(len(FC.ips)):
             try:
                 ftp.connect(FC.ips[x], 21)
@@ -272,6 +270,8 @@ class main(object):
     def getLocation(self, path, num):
         # TODO 如果用户输入的path没有到具体文件而是一个文件夹要不要做异常处理？
         parsedPath = pathParse(path)
+        if isFileExit(parsedPath):
+            return []
         filename = parsedPath[-1]
         parsedPath = parsedPath[:-1]
         print("filename " + filename)

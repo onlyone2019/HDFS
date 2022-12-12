@@ -1,12 +1,11 @@
 import queue
 import random
 from ftplib import FTP
+import time
 
 
 ips = ["192.168.0.168"]
-index = [1]
 flag = [True]
-
 
 # 文件基础类 记录一些文件基础信息，如文件名
 class INODE:
@@ -70,20 +69,24 @@ class FILENODE(INODE):
 			# TODO: 存储位置如何获取？
 			# 随机挑选datanode的ip
 
-			id = random.sample(range(-1 , len(ips) +1) , self.copyNum + 1)
-			for i in id:
-				loc = [ips[i] , index[i]]
-				index[i] += 1
+			id = random.sample(range(-1, len(ips) + 1), self.copyNum + 1)
+			for j in range(len(id)):
+				time_str = str(time.time())
+				time_str.replace('.', '')
+				time_str += str(i) + str(j)
+				loc = [ips[id[j]], time_str]
 				block.location.append(loc)
 			p.next = block
 			p = block
 			'''
 			id = 0
 			print("存 " + str(self.copyNum + 1) + " 份 \n")
-			for i in range(self.copyNum + 1):
-				loc = [ips[id], index[id]]
+			for j in range(self.copyNum + 1):
+				time_str = str(time.time())
+				time_str.replace('.', '')
+				time_str += str(i) + str(j)
+				loc = [ips[id], time_str]
 				print(loc)
-				index[id] += 1
 				block.location.append(loc)
 			self.locations.append(block.location)
 			p.next = block
@@ -112,13 +115,14 @@ class FILENODE(INODE):
 		while ok is False:
 			id = random.randint(0, len(ips))
 			if flag[id] is True:
-				index[id] += 1
-				p.location[i] = [ips[id] , index[id]]
-				self.locations[blocknum - 1][i] = [ips[id] , index[i]]
+				time_str = str(time.time())
+				time_str.replace('.', '')
+				p.location[i] = [ips[id], time_str]
+				self.locations[blocknum - 1][i] = [ips[id], time_str]
 				break
 			else:
 				continue
-		return [ips[id] , index[id]]
+		return [ips[id], time_str]
 
 	def blockLocations(self):
 		'''
